@@ -3,14 +3,26 @@ import './randomChar.css';
 import gotService from '../../services/gotService';
 import Spinner from '../spinner';
 import ErrorMessage from '../errorMessage';
+import PropTypes from 'prop-types';
+
 export default class RandomChar extends Component {
-    constructor() {
-        super();
-        this.updateChar();
-    }
 
     gotService = new gotService();
     state = {char: {}, loading: true, error: false}
+
+    // static defaultProps = {
+    //     interval: 2000
+    // }
+
+
+
+    componentDidMount() {
+        this.updateChar();
+        this.timerId = setInterval(this.updateChar, this.props.interval);
+    }
+    componentWillUnmount() {
+        clearInterval(this.timerId);
+    }
 
     onCharLoaded = (char) => {
         this.setState({char, loading: false})
@@ -23,7 +35,8 @@ export default class RandomChar extends Component {
         })
     }
 
-    updateChar() {
+    updateChar = () => {
+        console.log('updated');
         const id = Math.floor(Math.random() * 140 + 25);
         this.gotService.getCharacter(id)
         .then(this.onCharLoaded).catch((this.onError))
@@ -45,9 +58,25 @@ export default class RandomChar extends Component {
     }
 }
 
+RandomChar.defaultProps = {
+    interval: 2000
+}
+
+RandomChar.propTypes = {
+    interval: PropTypes.number
+    // interval: (props, propName, componentName) => {
+    //     const vlaue = props[propName];
+        
+    //     if (typeof vlaue === 'number' && isNaN(vlaue)) {
+    //         return null;
+    //     }
+    //     return new TypeError(`${componentName}: ${propName} должен быть числом`)
+    // }
+}
+
 const View = ({char}) => {
     const {name, gender, born, died, culture} = char;
-    return (
+    return (  
         <>
             <h4>Random Character: {name}</h4>
             <ul className="list-group list-group-flush">
@@ -71,3 +100,5 @@ const View = ({char}) => {
         </>
     )
 }
+
+

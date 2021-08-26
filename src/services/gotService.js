@@ -3,7 +3,7 @@ export default class GotService {
         this._apiBase = 'https://www.anapioficeandfire.com/api';
     }
 
-    async getRes(url) {
+    getRes = async (url) => {
         const res = await fetch(`${this._apiBase}${url}`);
         if(res.ok) {
             return await res.json();;
@@ -11,29 +11,40 @@ export default class GotService {
             throw new Error('Ошибка запроса', url, res.status);
         }
     }
-    async getAllCharacters() {
+     getAllCharacters =  async () => {
         const res = await this.getRes('/characters?page=5&pageSize=10');
         return res.map(this._transformCharacter);
     }
-    async getCharacter(id) {
+     getCharacter =  async (id) => {
         const res = await this.getRes(`/characters/${id}`);
         return this._transformCharacter(res);
     }
-    getAllHouses() {
-        return this.getRes('/houses/');
+    getAllHouses = async () => {
+        const res = await this.getRes('/houses/');
+        return res.map(this._transformHouse);
     }
-    getHouse(id) {
-        return this.getRes(`/houses/${id}/`)
+    getHouse = async (id) => {
+        const res = await this.getRes(`/houses/${id}`)
+        return this._transformHouse(res);
+        
     }
-    getAllBooks() {
-        return this.getRes('/books/');
+    getAllBooks = async () => {
+        const res = await this.getRes('/books/');
+        return res.map(this._transformBook);
     }
-    getBook(id) {
-        return this.getRes(`/books/${id}/`)
+    getBook = async (id) => {
+        const res = await this.getRes(`/books/${id}`)
+        return this._transformBook(res);
     }
-    _transformCharacter(char) {
+    _extractId = (item) => {
+        const idRegExp = /\/([0-9]*)$/;
+        return item.url.match(idRegExp)[1];
+    }
+    _transformCharacter = (char) => {
         let missingField = 'Неизвестно'
+        
         return {
+            id: this._extractId(char),
             name: char.name === '' ? missingField : char.name,
             gender: char.gender === '' ? missingField : char.gender,
             born: char.born === '' ? missingField : char.born ,
@@ -41,8 +52,9 @@ export default class GotService {
             culture: char.culture === '' ? missingField : char.culture
         }
     }
-    _transformHouse(house) { 
+    _transformHouse = (house) => { 
         return {
+            id: this._extractId(house),
             name: house.name,
             region: house.region,
             words: house.words,
@@ -51,8 +63,9 @@ export default class GotService {
             ancestralWeapons: house.ancestralWeapons
         }
     }
-    _transformBook(book) {
+    _transformBook = (book) => {
         return {
+            id: this._extractId(book),
             name: book.name,
             numberOfPages: book.numberOfPages,
             publiser: book.publiser,
