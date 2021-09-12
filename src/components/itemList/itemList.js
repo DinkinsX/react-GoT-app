@@ -1,30 +1,9 @@
-import React, {Component} from 'react';
+import React, {useState, useEffect, Component} from 'react';
 import './itemList.css';
 import Spinner from '../spinner';
-import PropTypes from 'prop-types';
-export default class ItemList extends Component {
-    state = {
-        itemList: null
-    }
+import gotService from '../../services/gotService';
 
-    static defaultProps = {
-        onItemSelected: () => {}
-    }
-    
-    static propTypes = {
-        onItemSelected: PropTypes.func,
-        getData: PropTypes.arrayOf(PropTypes.object)
-    }
-    
-    componentDidMount() {
-        const {getData} = this.props;
-
-        getData()
-        .then((itemList) => {
-            this.setState({itemList})
-        });
-    }
-
+class ItemList extends Component {
     renderItems(arr) {
         return arr.map((item, i) => {
             const {id} = item;
@@ -37,15 +16,12 @@ export default class ItemList extends Component {
                 {label}
                 </li>
             )
-        })
+        }) 
     }
 
     render() {
-        const {itemList} = this.state;
-        if (!itemList) {
-            return <Spinner/>
-        }
-        const items = this.renderItems(itemList);
+        const {data} = this.props;
+        const items = this.renderItems(data);
 
         return (
             <ul className="item-list list-group">
@@ -54,3 +30,33 @@ export default class ItemList extends Component {
         );
     }
 }
+
+const withData = (View, getData) => {
+    return class extends React.Component {
+
+        state = {
+            data: null
+        }
+
+        componentDidMount() {
+            getData()
+            .then((data) => {
+                this.setState({data})
+            });
+        }       
+        
+
+        render() {
+            const {data} = this.state;
+            if (!data) {
+                return <Spinner/>
+            }
+
+            return <View {...this.props} data={data}/>
+        }
+    }
+}
+
+const {getAllCharacters} = new gotService();
+
+export default withData(ItemList, getAllCharacters);
